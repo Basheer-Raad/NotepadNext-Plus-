@@ -1,61 +1,98 @@
-# Notepad Next
+# NotepadNext Plus
 
-![Build Notepad Next](https://github.com/dail8859/NotepadNext/workflows/Build%20Notepad%20Next/badge.svg)
+A fork of [NotepadNext](https://github.com/dail8859/NotepadNext) with improved typography and editing features for macOS.
 
-A cross-platform, reimplementation of Notepad++.
+---
 
-Though the application overall is stable and usable, it should not be considered safe for critically important work.
+## What's Improved
 
-There are numerous bugs and half working implementations. Pull requests are greatly appreciated.
+### Before vs After
 
-![screenshot](/doc/screenshot.png)
+| Original NotepadNext | NotepadNext Plus |
+|---------------------|------------------|
+| ![Before](docs/before.png) | ![After](docs/after.png) |
+| Cramped lines, Courier New font | Menlo font, comfortable line spacing |
 
-# Installation
+---
 
-Packages are available for Windows, Linux, and MacOS.
+## New Features
 
-Below are the supported distribution mechanisms. There may be other ways to download/install the application, but this project will likely not be able to offer any support for those since they are made available by other individuals.
+### 1. Better Typography
 
-## Windows
-Windows packages are available as an installer or a stand-alone zip file on the [release](https://github.com/dail8859/NotepadNext/releases) page. The installer provides additional components such as an auto-updater and Windows context menu integration. You can easily install it with Winget:
+| Feature | Before | After |
+|---------|--------|-------|
+| **Font** | Courier New | Menlo (native macOS) |
+| **Font Size** | System default | +2 points larger |
+| **Line Spacing** | None | 2px above & below each line |
 
-```powershell
-winget install dail8859.NotepadNext
-```
+### 2. Strip Trailing Whitespace
 
-## Linux
-Linux packages can be obtained by downloading the stand-alone AppImage on the [release](https://github.com/dail8859/NotepadNext/releases) page or by installing the [flatpak](https://flathub.org/apps/details/com.github.dail8859.NotepadNext) by executing:
+Removes invisible spaces and tabs at the end of lines.
+
+**Problem solved**: When you press backspace on an "empty" line and nothing happens - that's because there are hidden spaces. This feature removes them.
+
+**Menu**: Edit → Line Operations → Strip Trailing Whitespace
+
+![Strip Menu](docs/strip-menu.png)
+
+### 3. Auto-Strip on Save
+
+Automatically cleans trailing whitespace every time you save.
+
+**Location**: Preferences → Editor → Strip trailing whitespace on save
+
+![Preferences](docs/preferences.png)
+
+### 4. Adjustable Line Spacing
+
+Control the space between lines in Preferences.
+
+**Location**: Preferences → Editor → Line Spacing
+
+---
+
+## Installation
+
+### Build from Source (macOS)
 
 ```bash
-flatpak install flathub com.github.dail8859.NotepadNext
+# Install dependencies
+brew install cmake qt@6
+
+# Clone
+git clone https://github.com/Basheer-Raad/NotepadNext-Plus-.git
+cd NotepadNext-Plus-
+
+# Build
+mkdir build && cd build
+cmake .. -DCMAKE_PREFIX_PATH=$(brew --prefix qt@6)
+make -j$(sysctl -n hw.ncpu)
+
+# Run
+open src/NotepadNext.app
 ```
 
-## MacOS
-MacOS disk images can be downloaded from the [release](https://github.com/dail8859/NotepadNext/releases) page.
+---
 
-It can also be installed using brew:
-```bash
-brew tap dail8859/notepadnext
-brew install --no-quarantine notepadnext
-```
+## Summary of Changes
 
-#### MacOS Tweaks
+| Feature | Description |
+|---------|-------------|
+| Default font → Menlo | Better rendering on macOS |
+| Line spacing (+2px) | More readable, less cramped |
+| Strip Trailing Whitespace menu | Clean hidden spaces manually |
+| Auto-strip on save | Clean hidden spaces automatically |
+| Line Spacing preference | Customize spacing in settings |
 
-By default, MacOS enables font smoothing which causes text to appear quite differently from the Windows version. This can be disabled system-wide using the following command:
+---
 
-```bash
-defaults -currentHost write -g AppleFontSmoothing -int 0
-```
+## Credits
 
-A restart is required for this to take effect.
+- Original [NotepadNext](https://github.com/dail8859/NotepadNext) by Justin Dailey
+- Typography & whitespace improvements by Basheer Raad
 
-# Development
-Current development is done using QtCreator with the Microsoft Visual C++ (msvc) compiler. Qt 6.5 is the currently supported Qt version. Older versions of Qt are likely to work but are not tested. Any fixes for older versions will be accepted as long as they do not introduce complex fixes. This application is also known to build successfully on various Linux distributions and macOS. Other platforms/compilers should be usable with minor modifications.
+---
 
-If you are familiar with building C++ Qt desktop applications with Qt Creator, then this should be as simple as opening `CMakeLists` and build/run the project.
+## License
 
-If you are new to building C++ Qt desktop applications, there is a more detailed guide [here](/doc/Building.md).
-
-
-# License
-This code is released under the [GNU General Public License version 3](https://www.gnu.org/licenses/gpl-3.0.txt).
+[GNU General Public License version 3](https://www.gnu.org/licenses/gpl-3.0.txt)
