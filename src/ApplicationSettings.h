@@ -115,8 +115,10 @@ public:
     DEFINE_SETTING(WordWrap, wordWrap, bool);
     DEFINE_SETTING(FontName, fontName, QString);
     DEFINE_SETTING(FontSize, fontSize, int);
+    DEFINE_SETTING(LineSpacing, lineSpacing, int);
     DEFINE_SETTING(AdditionalWordChars, additionalWordChars, QString);
     DEFINE_SETTING(DefaultEOLMode, defaultEOLMode, QString)
     DEFINE_SETTING(URLHighlighting, urlHighlighting, bool)
     DEFINE_SETTING(ShowLineNumbers, showLineNumbers, bool)
+    DEFINE_SETTING(StripTrailingWhitespaceOnSave, stripTrailingWhitespaceOnSave, bool)
 };

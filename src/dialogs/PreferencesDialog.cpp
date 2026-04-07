@@ -82,6 +82,10 @@ PreferencesDialog::PreferencesDialog(ApplicationSettings *settings, QWidget *par
     connect(ui->spbDefaultFontSize, QOverload<int>::of(&QSpinBox::valueChanged), settings, &ApplicationSettings::setFontSize);
     connect(settings, &ApplicationSettings::fontSizeChanged, ui->spbDefaultFontSize, &QSpinBox::setValue);
 
+    ui->spbLineSpacing->setValue(settings->lineSpacing());
+    connect(ui->spbLineSpacing, QOverload<int>::of(&QSpinBox::valueChanged), settings, &ApplicationSettings::setLineSpacing);
+    connect(settings, &ApplicationSettings::lineSpacingChanged, ui->spbLineSpacing, &QSpinBox::setValue);
+
     ui->comboBoxLineEndings->addItem(tr("System Default"), QString(""));
     ui->comboBoxLineEndings->addItem(tr("Windows (CR LF)"), ScintillaNext::eolModeToString(SC_EOL_CRLF));
     ui->comboBoxLineEndings->addItem(tr("Linux (LF)"), ScintillaNext::eolModeToString(SC_EOL_LF));
@@ -101,6 +105,7 @@ PreferencesDialog::PreferencesDialog(ApplicationSettings *settings, QWidget *par
 
     MapSettingToCheckBox(ui->checkBoxHighlightURLs, &ApplicationSettings::urlHighlighting, &ApplicationSettings::setURLHighlighting, &ApplicationSettings::urlHighlightingChanged);
     MapSettingToCheckBox(ui->checkBoxShowLineNumbers, &ApplicationSettings::showLineNumbers, &ApplicationSettings::setShowLineNumbers, &ApplicationSettings::showLineNumbersChanged);
+    MapSettingToCheckBox(ui->checkBoxStripTrailingWhitespaceOnSave, &ApplicationSettings::stripTrailingWhitespaceOnSave, &ApplicationSettings::setStripTrailingWhitespaceOnSave, &ApplicationSettings::stripTrailingWhitespaceOnSaveChanged);
 
 
     QButtonGroup *buttonGroup = new QButtonGroup(this);

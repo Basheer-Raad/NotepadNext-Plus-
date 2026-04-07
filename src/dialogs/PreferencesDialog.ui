@@ -162,6 +162,26 @@
               </property>
              </widget>
             </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="label_lineSpacing">
+              <property name="text">
+               <string>Line Spacing</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="1">
+             <widget class="QSpinBox" name="spbLineSpacing">
+              <property name="suffix">
+               <string>px</string>
+              </property>
+              <property name="minimum">
+               <number>0</number>
+              </property>
+              <property name="maximum">
+               <number>20</number>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>
@@ -205,6 +225,13 @@
         <widget class="QCheckBox" name="checkBoxShowLineNumbers">
          <property name="text">
           <string>Show Line Numbers</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBoxStripTrailingWhitespaceOnSave">
+         <property name="text">
+          <string>Strip trailing whitespace on save</string>
          </property>
         </widget>
        </item>

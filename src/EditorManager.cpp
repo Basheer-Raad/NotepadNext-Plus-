@@ -111,6 +111,13 @@ EditorManager::EditorManager(ApplicationSettings *settings, QObject *parent)
         }
     });
 
+    connect(settings, &ApplicationSettings::lineSpacingChanged, this, [=](int lineSpacing){
+        for (auto &editor : getEditors()) {
+            editor->setExtraAscent(lineSpacing);
+            editor->setExtraDescent(lineSpacing);
+        }
+    });
+
     connect(settings, &ApplicationSettings::urlHighlightingChanged, this, [=](bool b){
         for (auto &editor : getEditors()) {
             URLFinder *decorator = editor->findChild<URLFinder *>(QString(), Qt::FindDirectChildrenOnly);
@@ -260,6 +267,10 @@ void EditorManager::setupEditor(ScintillaNext *editor)
     editor->styleSetSize(STYLE_DEFAULT, settings->fontSize());
     editor->styleSetFont(STYLE_DEFAULT, settings->fontName().toUtf8().data());
     editor->styleClearAll();
+
+    // Apply line spacing for better readability
+    editor->setExtraAscent(settings->lineSpacing());
+    editor->setExtraDescent(settings->lineSpacing());
 
     editor->styleSetFore(STYLE_LINENUMBER, 0x808080);
     editor->styleSetBack(STYLE_LINENUMBER, 0xE4E4E4);

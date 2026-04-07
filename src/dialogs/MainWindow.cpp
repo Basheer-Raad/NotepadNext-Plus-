@@ -24,6 +24,8 @@
 #include "URLFinder.h"
 #include "SessionManager.h"
 #include "UndoAction.h"
+#include "Finder.h"
+#include "ApplicationSettings.h"
 #include "ui_MainWindow.h"
 
 #include <QFileDialog>
@@ -257,6 +259,17 @@ MainWindow::MainWindow(NotepadNextApplication *app) :
     });
     connect(ui->actionRemoveConsecutiveDuplicateLines, &QAction::triggered, this, [=]() {
         currentEditor()->removeConsecutiveDuplicateLines();
+    });
+
+    connect(ui->actionStripTrailingWhitespace, &QAction::triggered, this, [=]() {
+        ScintillaNext *editor = currentEditor();
+        Finder f(editor);
+        const UndoAction ua(editor);
+
+        // Remove trailing spaces and tabs from each line
+        f.setSearchText(QStringLiteral("[ \\t]+$"));
+        f.setSearchFlags(SCFIND_REGEXP);
+        f.replaceAll(QStringLiteral(""));
     });
 
     connect(ui->actionColumnMode, &QAction::triggered, this, [=]() {
@@ -1300,6 +1313,14 @@ bool MainWindow::saveFile(ScintillaNext *editor)
 {
     if (editor->isSavedToDisk())
         return true;
+
+    // Strip trailing whitespace if the setting is enabled
+    if (app->getSettings()->stripTrailingWhitespaceOnSave()) {
+        Finder f(editor);
+        f.setSearchText(QStringLiteral("[ \\t]+$"));
+        f.setSearchFlags(SCFIND_REGEXP);
+        f.replaceAll(QStringLiteral(""));
+    }
 
     if (!editor->isFile()) {
         // Switch to the editor and show the saveas dialog
