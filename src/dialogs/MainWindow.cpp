@@ -164,6 +164,38 @@ MainWindow::MainWindow(NotepadNextApplication *app) :
     connect(ui->actionExportMarkdownPdf, &QAction::triggered, this, &MainWindow::exportMarkdownToPdf);
     connect(ui->actionPrintMarkdownPreview, &QAction::triggered, this, &MainWindow::printMarkdownPreview);
 
+    // Font style preset toggle (View menu)
+    QActionGroup *fontStyleGroup = new QActionGroup(this);
+    fontStyleGroup->addAction(ui->actionFontStyleTextEdit);
+    fontStyleGroup->addAction(ui->actionFontStyleClassic);
+    fontStyleGroup->setExclusive(true);
+
+    auto updateFontStyleActions = [=, this]() {
+        const QString font = app->getSettings()->fontName();
+        const int spacing = app->getSettings()->lineSpacing();
+        if (font == QStringLiteral("Menlo") && spacing == 2) {
+            ui->actionFontStyleTextEdit->setChecked(true);
+        } else if (font == QStringLiteral("Courier New") && spacing == 0) {
+            ui->actionFontStyleClassic->setChecked(true);
+        } else {
+            // Custom settings — uncheck both
+            ui->actionFontStyleTextEdit->setChecked(false);
+            ui->actionFontStyleClassic->setChecked(false);
+        }
+    };
+    updateFontStyleActions();
+
+    connect(ui->actionFontStyleTextEdit, &QAction::triggered, this, [=, this]() {
+        app->getSettings()->setFontName(QStringLiteral("Menlo"));
+        app->getSettings()->setLineSpacing(2);
+    });
+    connect(ui->actionFontStyleClassic, &QAction::triggered, this, [=, this]() {
+        app->getSettings()->setFontName(QStringLiteral("Courier New"));
+        app->getSettings()->setLineSpacing(0);
+    });
+    connect(app->getSettings(), &ApplicationSettings::fontNameChanged, this, [=](QString) { updateFontStyleActions(); });
+    connect(app->getSettings(), &ApplicationSettings::lineSpacingChanged, this, [=](int) { updateFontStyleActions(); });
+
     connect(ui->actionToggleSingleLineComment, &QAction::triggered, this, [=]() { currentEditor()->toggleCommentSelection(); });
     connect(ui->actionSingleLineComment, &QAction::triggered, this, [=]() { currentEditor()->commentLineSelection(); });
     connect(ui->actionSingleLineUncomment, &QAction::triggered, this, [=]() { currentEditor()->uncommentLineSelection(); });

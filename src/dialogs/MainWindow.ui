@@ -293,9 +293,18 @@
      <addaction name="actionUnfoldLevel8"/>
      <addaction name="actionUnfoldLevel9"/>
     </widget>
+    <widget class="QMenu" name="menuFontStyle">
+     <property name="title">
+      <string>Font Style</string>
+     </property>
+     <addaction name="actionFontStyleTextEdit"/>
+     <addaction name="actionFontStyleClassic"/>
+    </widget>
     <addaction name="actionFullScreen"/>
     <addaction name="separator"/>
     <addaction name="actionToggleMarkdownPreview"/>
+    <addaction name="separator"/>
+    <addaction name="menuFontStyle"/>
     <addaction name="separator"/>
     <addaction name="menuShowSymbol"/>
     <addaction name="menuZoom"/>
@@ -1520,6 +1529,22 @@
    </property>
    <property name="toolTip">
     <string>Print the rendered Markdown preview</string>
+   </property>
+  </action>
+  <action name="actionFontStyleTextEdit">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>macOS TextEdit (Menlo)</string>
+   </property>
+  </action>
+  <action name="actionFontStyleClassic">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Classic (Courier New)</string>
    </property>
   </action>
  </widget>

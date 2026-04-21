@@ -70,12 +70,40 @@ PreferencesDialog::PreferencesDialog(ApplicationSettings *settings, QWidget *par
 
     MapSettingToCheckBox(ui->checkBoxExitOnLastTabClosed, &ApplicationSettings::exitOnLastTabClosed, &ApplicationSettings::setExitOnLastTabClosed, &ApplicationSettings::exitOnLastTabClosedChanged);
 
+    // Font preset combo
+    ui->comboBoxFontPreset->addItem(tr("macOS TextEdit (Menlo)"));
+    ui->comboBoxFontPreset->addItem(tr("Classic (Courier New)"));
+
+    auto updatePresetCombo = [=, this]() {
+        ui->comboBoxFontPreset->blockSignals(true);
+        const QString font = settings->fontName();
+        const int spacing = settings->lineSpacing();
+        if (font == QStringLiteral("Menlo") && spacing == 2) {
+            ui->comboBoxFontPreset->setCurrentIndex(0);
+        } else if (font == QStringLiteral("Courier New") && spacing == 0) {
+            ui->comboBoxFontPreset->setCurrentIndex(1);
+        }
+        ui->comboBoxFontPreset->blockSignals(false);
+    };
+    updatePresetCombo();
+
+    connect(ui->comboBoxFontPreset, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [=, this](int index) {
+        if (index == 0) {
+            settings->setFontName(QStringLiteral("Menlo"));
+            settings->setLineSpacing(2);
+        } else if (index == 1) {
+            settings->setFontName(QStringLiteral("Courier New"));
+            settings->setLineSpacing(0);
+        }
+    });
+
     ui->fcbDefaultFont->setCurrentFont(QFont(settings->fontName()));
     connect(ui->fcbDefaultFont, &QFontComboBox::currentFontChanged, this, [=](const QFont &f) {
         settings->setFontName(f.family());
     });
     connect(settings, &ApplicationSettings::fontNameChanged, this, [=](QString fontName){
         ui->fcbDefaultFont->setCurrentFont(QFont(fontName));
+        updatePresetCombo();
     });
 
     ui->spbDefaultFontSize->setValue(settings->fontSize());
@@ -84,7 +112,10 @@ PreferencesDialog::PreferencesDialog(ApplicationSettings *settings, QWidget *par
 
     ui->spbLineSpacing->setValue(settings->lineSpacing());
     connect(ui->spbLineSpacing, QOverload<int>::of(&QSpinBox::valueChanged), settings, &ApplicationSettings::setLineSpacing);
-    connect(settings, &ApplicationSettings::lineSpacingChanged, ui->spbLineSpacing, &QSpinBox::setValue);
+    connect(settings, &ApplicationSettings::lineSpacingChanged, this, [=](int lineSpacing) {
+        ui->spbLineSpacing->setValue(lineSpacing);
+        updatePresetCombo();
+    });
 
     ui->comboBoxLineEndings->addItem(tr("System Default"), QString(""));
     ui->comboBoxLineEndings->addItem(tr("Windows (CR LF)"), ScintillaNext::eolModeToString(SC_EOL_CRLF));
