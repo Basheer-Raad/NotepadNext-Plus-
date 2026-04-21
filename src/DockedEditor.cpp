@@ -26,6 +26,7 @@
 #include "DockAreaTitleBar.h"
 
 #include "ScintillaNext.h"
+#include "MarkdownEditorContainer.h"
 
 #include <QUuid>
 
@@ -69,11 +70,14 @@ DockedEditor::DockedEditor(QWidget *parent) : QObject(parent)
     connect(dockManager, &ads::CDockManager::focusedDockWidgetChanged, this, [=](ads::CDockWidget* old, ads::CDockWidget* now) {
         Q_UNUSED(old)
 
-        ScintillaNext *editor = qobject_cast<ScintillaNext *>(now->widget());
+        MarkdownEditorContainer *container = qobject_cast<MarkdownEditorContainer *>(now->widget());
+        ScintillaNext *editor = container ? container->editor() : nullptr;
 
-        currentEditor = editor;
-        editor->grabFocus();
-        emit editorActivated(editor);
+        if (editor) {
+            currentEditor = editor;
+            editor->grabFocus();
+            emit editorActivated(editor);
+        }
     });
 
     connect(dockManager, &ads::CDockManager::dockAreaCreated, this, [=](ads::CDockAreaWidget* DockArea) {
@@ -117,7 +121,10 @@ QVector<ScintillaNext *> DockedEditor::editors() const
     // For each area, for each widget, append it to our list
     for (const ads::CDockAreaWidget* areaWidget : dockManager->openedDockAreas()) {
         for (const ads::CDockWidget* dockWidget : areaWidget->dockWidgets()) {
-            editors.append(qobject_cast<ScintillaNext *>(dockWidget->widget()));
+            MarkdownEditorContainer *container = qobject_cast<MarkdownEditorContainer *>(dockWidget->widget());
+            if (container) {
+                editors.append(container->editor());
+            }
         }
     }
 
@@ -126,10 +133,12 @@ QVector<ScintillaNext *> DockedEditor::editors() const
 
 void DockedEditor::switchToEditor(const ScintillaNext *editor)
 {
-    ads::CDockWidget *dockWidget = qobject_cast<ads::CDockWidget *>(editor->parentWidget());
+    // Editor is inside MarkdownEditorContainer which is inside CDockWidget
+    MarkdownEditorContainer *container = qobject_cast<MarkdownEditorContainer *>(editor->parentWidget());
+    ads::CDockWidget *dockWidget = container ? qobject_cast<ads::CDockWidget *>(container->parentWidget()) : nullptr;
 
     if (dockWidget == Q_NULLPTR) {
-        qWarning() << "Expected editor's parent to be CDockWidget";
+        qWarning() << "Expected editor's parent hierarchy to include CDockWidget";
     }
     else {
         dockWidget->raise();
@@ -139,9 +148,12 @@ void DockedEditor::switchToEditor(const ScintillaNext *editor)
 void DockedEditor::dockWidgetCloseRequested()
 {
     ads::CDockWidget *dockWidget = qobject_cast<ads::CDockWidget *>(sender());
-    ScintillaNext *editor = qobject_cast<ScintillaNext *>(dockWidget->widget());
+    MarkdownEditorContainer *container = qobject_cast<MarkdownEditorContainer *>(dockWidget->widget());
+    ScintillaNext *editor = container ? container->editor() : nullptr;
 
-    emit editorCloseRequested(editor);
+    if (editor) {
+        emit editorCloseRequested(editor);
+    }
 }
 
 ads::CDockAreaWidget *DockedEditor::currentDockArea() const
@@ -168,7 +180,8 @@ void DockedEditor::addEditor(ScintillaNext *editor)
     // We need a unique object name. Can't use the name or file path so use a uuid
     dockWidget->setObjectName(QUuid::createUuid().toString());
 
-    dockWidget->setWidget(editor);
+    MarkdownEditorContainer *container = new MarkdownEditorContainer(editor, dockWidget);
+    dockWidget->setWidget(container);
     dockWidget->setFeature(ads::CDockWidget::DockWidgetFeature::DockWidgetDeleteOnClose, true);
     dockWidget->setFeature(ads::CDockWidget::DockWidgetFeature::CustomCloseHandling, true);
     dockWidget->setFeature(ads::CDockWidget::DockWidgetFeature::DockWidgetFloatable, false);
@@ -217,14 +230,25 @@ void DockedEditor::editorRenamed(ScintillaNext *editor)
 {
     Q_ASSERT(editor != Q_NULLPTR);
 
-    ads::CDockWidget *dockWidget = qobject_cast<ads::CDockWidget *>(editor->parentWidget());
+    MarkdownEditorContainer *container = qobject_cast<MarkdownEditorContainer *>(editor->parentWidget());
+    ads::CDockWidget *dockWidget = container ? qobject_cast<ads::CDockWidget *>(container->parentWidget()) : nullptr;
 
-    dockWidget->setWindowTitle(editor->getName());
+    if (dockWidget) {
+        dockWidget->setWindowTitle(editor->getName());
 
-    if (editor->isFile()) {
-        dockWidget->tabWidget()->setToolTip(editor->getFilePath());
+        if (editor->isFile()) {
+            dockWidget->tabWidget()->setToolTip(editor->getFilePath());
+        }
+        else {
+            dockWidget->tabWidget()->setToolTip(editor->getName());
+        }
     }
-    else {
-        dockWidget->tabWidget()->setToolTip(editor->getName());
+}
+
+MarkdownEditorContainer *DockedEditor::containerForEditor(ScintillaNext *editor) const
+{
+    if (editor == Q_NULLPTR) {
+        return Q_NULLPTR;
     }
+    return qobject_cast<MarkdownEditorContainer *>(editor->parentWidget());
 }

@@ -1,4 +1,4 @@
-qt_add_executable(NotepadNext
+qt_add_executable(${APP_TARGET_NAME}
 	WIN32
 	MACOSX_BUNDLE
 	ActionUtils.h
@@ -179,10 +179,22 @@ qt_add_executable(NotepadNext
 	widgets/QuickFindWidget.ui
 	widgets/StatusLabel.cpp
 	widgets/StatusLabel.h
+	widgets/MarkdownPreviewWidget.h
+	widgets/MarkdownPreviewWidget.cpp
+	widgets/MarkdownEditorContainer.h
+	widgets/MarkdownEditorContainer.cpp
+	MarkdownPdfExporter.h
+	MarkdownPdfExporter.cpp
 )
 
-set_target_properties(NotepadNext PROPERTIES
-    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/deploy/macos/info.plist
+if(NOTEPAD_PLUS_BUILD)
+    set(APP_PLIST ${CMAKE_SOURCE_DIR}/deploy/macos/info-plus.plist)
+else()
+    set(APP_PLIST ${CMAKE_SOURCE_DIR}/deploy/macos/info.plist)
+endif()
+
+set_target_properties(${APP_TARGET_NAME} PROPERTIES
+    MACOSX_BUNDLE_INFO_PLIST ${APP_PLIST}
 )
 
 file(GLOB TS_FILES
@@ -190,13 +202,13 @@ file(GLOB TS_FILES
 )
 
 find_package(Qt6 REQUIRED COMPONENTS LinguistTools)
-qt_add_translations(NotepadNext
+qt_add_translations(${APP_TARGET_NAME}
     TS_FILES ${TS_FILES}
     RESOURCE_PREFIX "/i18n"
 )
 
 
-target_include_directories(NotepadNext
+target_include_directories(${APP_TARGET_NAME}
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/decorators
         ${CMAKE_CURRENT_SOURCE_DIR}/dialogs
@@ -211,15 +223,15 @@ if(WIN32)
 		"${CMAKE_BINARY_DIR}/version.rc"
 		@ONLY
 	)
-	target_sources(NotepadNext PRIVATE "${CMAKE_BINARY_DIR}/version.rc")
+	target_sources(${APP_TARGET_NAME} PRIVATE "${CMAKE_BINARY_DIR}/version.rc")
 	configure_file(
-		"${CMAKE_SOURCE_DIR}/icon/NotepadNext.ico"
-		"${CMAKE_BINARY_DIR}/NotepadNext.ico"
+		"${CMAKE_SOURCE_DIR}/icon/${APP_ICON_NAME}.ico"
+		"${CMAKE_BINARY_DIR}/${APP_ICON_NAME}.ico"
 		COPYONLY
 	)
 endif()
 
-target_link_libraries(NotepadNext
+target_link_libraries(${APP_TARGET_NAME}
     PRIVATE
         Qt6::Core
         Qt6::Gui
@@ -236,7 +248,7 @@ target_link_libraries(NotepadNext
         uchardet
 )
 
-target_compile_definitions(NotepadNext
+target_compile_definitions(${APP_TARGET_NAME}
     PRIVATE
         ADS_STATIC
         QSIMPLEUPDATER_STATIC
@@ -244,4 +256,7 @@ target_compile_definitions(NotepadNext
         APP_VERSION="${PROJECT_VERSION}"
         APP_COPYRIGHT="${APP_COPYRIGHT}"
         APP_DISTRIBUTION="${APP_DISTRIBUTION}"
+        APP_DISPLAY_NAME="${APP_DISPLAY_NAME}"
+        APP_ORG_NAME="${APP_ORG_NAME}"
+        $<$<BOOL:${NOTEPAD_PLUS_BUILD}>:NOTEPAD_PLUS_BUILD>
 )

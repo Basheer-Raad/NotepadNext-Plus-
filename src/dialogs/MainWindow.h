@@ -98,6 +98,11 @@ public slots:
 
     void print();
 
+    void toggleMarkdownPreview();
+    void exportMarkdownToPdf();
+    void printMarkdownPreview();
+    void updateMarkdownPreviewActions();
+
     void convertEOLs(int eolMode);
 
     void showFindReplaceDialog(int index);

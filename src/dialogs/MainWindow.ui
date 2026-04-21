@@ -70,6 +70,7 @@
      </property>
      <addaction name="actionExportHtml"/>
      <addaction name="actionExportRtf"/>
+     <addaction name="actionExportMarkdownPdf"/>
     </widget>
     <addaction name="actionNew"/>
     <addaction name="actionOpen"/>
@@ -87,6 +88,7 @@
     <addaction name="actionMoveToTrash"/>
     <addaction name="separator"/>
     <addaction name="actionPrint"/>
+    <addaction name="actionPrintMarkdownPreview"/>
     <addaction name="separator"/>
     <addaction name="menuRecentFiles"/>
     <addaction name="separator"/>
@@ -292,6 +294,8 @@
      <addaction name="actionUnfoldLevel9"/>
     </widget>
     <addaction name="actionFullScreen"/>
+    <addaction name="separator"/>
+    <addaction name="actionToggleMarkdownPreview"/>
     <addaction name="separator"/>
     <addaction name="menuShowSymbol"/>
     <addaction name="menuZoom"/>
@@ -1489,6 +1493,33 @@
   <action name="actionStripTrailingWhitespace">
    <property name="text">
     <string>Strip Trailing Whitespace</string>
+   </property>
+  </action>
+  <action name="actionToggleMarkdownPreview">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Toggle Markdown Preview</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle Markdown Preview</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+M</string>
+   </property>
+  </action>
+  <action name="actionExportMarkdownPdf">
+   <property name="text">
+    <string>Export Markdown as PDF...</string>
+   </property>
+  </action>
+  <action name="actionPrintMarkdownPreview">
+   <property name="text">
+    <string>Print Rendered Markdown...</string>
+   </property>
+   <property name="toolTip">
+    <string>Print the rendered Markdown preview</string>
    </property>
   </action>
  </widget>

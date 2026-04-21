@@ -86,6 +86,10 @@
 #include "HtmlConverter.h"
 #include "RtfConverter.h"
 
+#include "MarkdownEditorContainer.h"
+#include "MarkdownPreviewWidget.h"
+#include "MarkdownPdfExporter.h"
+
 #include "FadingIndicator.h"
 
 #include "ActionUtils.h"
@@ -114,6 +118,7 @@ MainWindow::MainWindow(NotepadNextApplication *app) :
     dockedEditor = new DockedEditor(this);
     connect(dockedEditor, &DockedEditor::editorCloseRequested, this, [=](ScintillaNext *editor) { closeFile(editor); });
     connect(dockedEditor, &DockedEditor::editorActivated, this, &MainWindow::activateEditor);
+    connect(dockedEditor, &DockedEditor::editorActivated, this, &MainWindow::updateMarkdownPreviewActions);
     connect(dockedEditor, &DockedEditor::contextMenuRequestedForEditor, this, &MainWindow::tabBarRightClicked);
     connect(dockedEditor, &DockedEditor::titleBarDoubleClicked, this, &MainWindow::newFile);
 
@@ -154,6 +159,10 @@ MainWindow::MainWindow(NotepadNextApplication *app) :
     });
 
     connect(ui->actionPrint, &QAction::triggered, this, &MainWindow::print);
+
+    connect(ui->actionToggleMarkdownPreview, &QAction::triggered, this, &MainWindow::toggleMarkdownPreview);
+    connect(ui->actionExportMarkdownPdf, &QAction::triggered, this, &MainWindow::exportMarkdownToPdf);
+    connect(ui->actionPrintMarkdownPreview, &QAction::triggered, this, &MainWindow::printMarkdownPreview);
 
     connect(ui->actionToggleSingleLineComment, &QAction::triggered, this, [=]() { currentEditor()->toggleCommentSelection(); });
     connect(ui->actionSingleLineComment, &QAction::triggered, this, [=]() { currentEditor()->commentLineSelection(); });
@@ -1275,8 +1284,10 @@ void MainWindow::closeAllToLeft()
     QVector<ScintillaNext *> editors;
 
     for (int i = 0; i < index; ++i) {
-        auto editor = qobject_cast<ScintillaNext *>(dockedEditor->currentDockArea()->dockWidget(i)->widget());
-        editors.append(editor);
+        auto container = qobject_cast<MarkdownEditorContainer *>(dockedEditor->currentDockArea()->dockWidget(i)->widget());
+        if (container) {
+            editors.append(container->editor());
+        }
     }
 
     if (checkEditorsBeforeClose(editors)) {
@@ -1293,8 +1304,10 @@ void MainWindow::closeAllToRight()
     QVector<ScintillaNext *> editors;
 
     for (int i = index + 1; i < total; ++i) {
-        auto editor = qobject_cast<ScintillaNext *>(dockedEditor->currentDockArea()->dockWidget(i)->widget());
-        editors.append(editor);
+        auto container = qobject_cast<MarkdownEditorContainer *>(dockedEditor->currentDockArea()->dockWidget(i)->widget());
+        if (container) {
+            editors.append(container->editor());
+        }
     }
 
     if (checkEditorsBeforeClose(editors)) {
@@ -1515,6 +1528,13 @@ void MainWindow::moveFileToTrash(ScintillaNext *editor)
 
 void MainWindow::print()
 {
+    // If in markdown preview mode, print the rendered markdown instead of raw source
+    MarkdownEditorContainer *container = dockedEditor->containerForEditor(currentEditor());
+    if (container && container->isPreviewMode()) {
+        printMarkdownPreview();
+        return;
+    }
+
     QPrintPreviewDialog printDialog(this, Qt::Window);
     EditorPrintPreviewRenderer renderer(currentEditor());
 
@@ -1530,6 +1550,76 @@ void MainWindow::print()
     });
 
     printDialog.exec();
+}
+
+void MainWindow::toggleMarkdownPreview()
+{
+    ScintillaNext *editor = currentEditor();
+    if (!editor) return;
+
+    MarkdownEditorContainer *container = dockedEditor->containerForEditor(editor);
+    if (!container) return;
+
+    container->togglePreviewMode();
+    updateMarkdownPreviewActions();
+}
+
+void MainWindow::exportMarkdownToPdf()
+{
+    ScintillaNext *editor = currentEditor();
+    if (!editor) return;
+
+    QString defaultName;
+    if (editor->isFile()) {
+        QFileInfo fi(editor->getFilePath());
+        defaultName = fi.absolutePath() + QDir::separator() + fi.completeBaseName() + QStringLiteral(".pdf");
+    }
+
+    const QString filter = QStringLiteral("PDF files (*.pdf);;All files (*)");
+    QString fileName = FileDialogHelpers::getSaveFileName(this, tr("Export Markdown as PDF"), defaultName, filter);
+
+    if (fileName.isEmpty()) {
+        return;
+    }
+
+    MarkdownPdfExporter exporter(editor);
+    if (!exporter.exportToPdf(fileName)) {
+        QMessageBox::warning(this, tr("Export Failed"), tr("Failed to export the document as PDF."));
+    }
+}
+
+void MainWindow::printMarkdownPreview()
+{
+    ScintillaNext *editor = currentEditor();
+    if (!editor) return;
+
+    MarkdownPdfExporter exporter(editor);
+
+    QPrintPreviewDialog printDialog(this, Qt::Window);
+    printDialog.printer()->setPageMargins(QMarginsF(20, 20, 20, 20), QPageLayout::Millimeter);
+
+    connect(&printDialog, &QPrintPreviewDialog::paintRequested, this, [&](QPrinter *printer) {
+        exporter.print(printer);
+    });
+
+    printDialog.exec();
+}
+
+void MainWindow::updateMarkdownPreviewActions()
+{
+    ScintillaNext *editor = currentEditor();
+    bool isMarkdown = editor && editor->languageName == QStringLiteral("Markdown");
+
+    MarkdownEditorContainer *container = editor ? dockedEditor->containerForEditor(editor) : nullptr;
+    bool inPreview = container && container->isPreviewMode();
+
+    // Toggle is always enabled so users can force markdown preview for any buffer
+    ui->actionToggleMarkdownPreview->setEnabled(editor != nullptr);
+    ui->actionToggleMarkdownPreview->setChecked(inPreview);
+
+    // Export and print are enabled when the file is markdown or preview is active
+    ui->actionExportMarkdownPdf->setEnabled(isMarkdown || inPreview);
+    ui->actionPrintMarkdownPreview->setEnabled(isMarkdown || inPreview);
 }
 
 void MainWindow::convertEOLs(int eolMode)
@@ -1711,6 +1801,7 @@ void MainWindow::updateGui(ScintillaNext *editor)
     updateSelectionBasedUi(editor);
     updateContentBasedUi(editor);
     updateLanguageBasedUi(editor);
+    updateMarkdownPreviewActions();
 }
 
 void MainWindow::updateDocumentBasedUi(Scintilla::Update updated)

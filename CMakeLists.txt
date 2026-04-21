@@ -10,6 +10,23 @@ set(APP_DISTRIBUTION "" CACHE STRING "Distribution type")
 string(TIMESTAMP CURRENT_YEAR "%Y")
 set(APP_COPYRIGHT "Copyright 2019-${CURRENT_YEAR} Justin Dailey")
 
+# --- Build variant toggle ---
+option(NOTEPAD_PLUS_BUILD "Build the enhanced Notepad Next Plus variant" ON)
+
+if(NOTEPAD_PLUS_BUILD)
+    set(APP_TARGET_NAME "NotepadNextPlus")
+    set(APP_DISPLAY_NAME "Notepad Next Plus")
+    set(APP_ICON_NAME "NotepadNextPlus")
+    set(APP_BUNDLE_ID "com.basheer.NotepadNextPlus")
+    set(APP_ORG_NAME "NotepadNextPlus")
+else()
+    set(APP_TARGET_NAME "NotepadNext")
+    set(APP_DISPLAY_NAME "Notepad Next")
+    set(APP_ICON_NAME "NotepadNext")
+    set(APP_BUNDLE_ID "io.github.dail8859.NotepadNext")
+    set(APP_ORG_NAME "NotepadNext")
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)

@@ -30,9 +30,9 @@ int main(int argc, char *argv[])
     qSetMessagePattern("[%{time process}] %{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-critical}C%{endif}%{if-fatal}F%{endif}: %{message}");
 
     // Set these since other parts of the app references these
-    QApplication::setOrganizationName("NotepadNextPlus");
-    QApplication::setApplicationName("NotepadNextPlus");
-    QGuiApplication::setApplicationDisplayName("Notepad Next Plus");
+    QApplication::setOrganizationName(APP_ORG_NAME);
+    QApplication::setApplicationName(APP_ORG_NAME);
+    QGuiApplication::setApplicationDisplayName(APP_DISPLAY_NAME);
     QGuiApplication::setApplicationVersion(APP_VERSION);
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)

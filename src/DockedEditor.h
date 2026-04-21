@@ -25,6 +25,8 @@
 #include "DockManager.h"
 #include "ScintillaNext.h"
 
+class MarkdownEditorContainer;
+
 class DockedEditor : public QObject
 {
     Q_OBJECT
@@ -45,6 +47,8 @@ public:
     void switchToEditor(const ScintillaNext *editor);
 
     int count() const;
+
+    MarkdownEditorContainer *containerForEditor(ScintillaNext *editor) const;
 
 public slots:
     void addEditor(ScintillaNext *editor);

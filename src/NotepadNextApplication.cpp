@@ -70,7 +70,11 @@ static QString toLocalFileName(const QString file)
 }
 
 NotepadNextApplication::NotepadNextApplication(int &argc, char **argv)
+#ifdef NOTEPAD_PLUS_BUILD
     : SingleApplication(argc, argv, true, opts, 1000, QStringLiteral("plus-build-1"))
+#else
+    : SingleApplication(argc, argv, true, opts, 1000, QStringLiteral("original-build-1"))
+#endif
 {
 #ifdef Q_OS_WIN
     // Create a system-wide mutex so the installer can detect if it is running
@@ -87,7 +91,11 @@ bool NotepadNextApplication::init()
     qInfo(Q_FUNC_INFO);
 
 #ifndef Q_OS_MACOS
+#ifdef NOTEPAD_PLUS_BUILD
+    setWindowIcon(QIcon(QStringLiteral(":/icons/NotepadNextPlus.png")));
+#else
     setWindowIcon(QIcon(QStringLiteral(":/icons/NotepadNext.png")));
+#endif
 #endif
 
     settings = new ApplicationSettings(this);
